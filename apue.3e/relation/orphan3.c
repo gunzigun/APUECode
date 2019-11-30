@@ -8,6 +8,13 @@ sig_hup(int signo)
 }
 
 static void
+sig_cont(int signo)
+{
+	printf("SIGCONT received, pid = %ld\n", (long)getpid());
+}
+
+
+static void
 pr_ids(char *name)
 {
 	printf("%s: pid = %ld, ppid = %ld, pgrp = %ld, tpgrp = %ld\n",
@@ -29,8 +36,14 @@ main(void)
 		sleep(5);		/* sleep to let child stop itself */
 	} else {			/* child */
 		pr_ids("child");
+
 		signal(SIGHUP, sig_hup);	/* establish signal handler */
+		signal(SIGCONT, sig_cont);
+		
+		printf("beforekill\n");
 		kill(getpid(), SIGTSTP);	/* stop ourself */
+		printf("afterkill\n");
+		
 		pr_ids("child");	/* prints only if we're continued */
 		if (read(STDIN_FILENO, &c, 1) != 1)
 			printf("read error %d on controlling TTY\n", errno);
